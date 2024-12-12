@@ -1,4 +1,3 @@
-pip install -r 
 tensorflow
 keras
 numpy
