@@ -1,114 +1,82 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quirky Website</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
+import streamlit as st
+import requests
 
-        header {
-            background-color: #4CAF50;
-            color: white;
-            padding: 1em 0;
-            text-align: center;
-        }
+# Page Configuration
+st.set_page_config(page_title="Quirky Website", layout="centered")
 
-        nav a {
-            color: white;
-            margin: 0 1em;
-            text-decoration: none;
-        }
+# Page Header
+st.title("Welcome to the Quirky Website")
+st.write("Explore **Mini-Games**, the latest **News**, and our interactive **Forum**!")
 
-        main {
-            padding: 2em;
-        }
+# Navigation Tabs
+tab1, tab2, tab3 = st.tabs(["Mini Games", "News Feed", "Forum"])
 
-        section {
-            margin-bottom: 2em;
-        }
+# Tab 1: Mini Games
+with tab1:
+    st.header("Mini Games")
+    st.write("Play fun games below:")
 
-        footer {
-            background-color: #333;
-            color: white;
-            text-align: center;
-            padding: 1em 0;
-        }
+    # Tic-Tac-Toe Example (Simple Implementation)
+    st.write("### Tic-Tac-Toe")
+    if "board" not in st.session_state:
+        st.session_state.board = [""] * 9
+        st.session_state.current_player = "X"
 
-        .news-item {
-            border: 1px solid #ddd;
-            padding: 1em;
-            margin-bottom: 1em;
-            border-radius: 5px;
-        }
+    # Display Tic-Tac-Toe Board
+    cols = st.columns(3)
+    for i in range(3):
+        for j in range(3):
+            idx = 3 * i + j
+            if cols[j].button(st.session_state.board[idx] or " ", key=f"cell-{idx}"):
+                if not st.session_state.board[idx]:
+                    st.session_state.board[idx] = st.session_state.current_player
+                    st.session_state.current_player = "O" if st.session_state.current_player == "X" else "X"
 
-        .news-item h3 {
-            margin: 0 0 0.5em;
-        }
+    # Reset Button
+    if st.button("Reset Game"):
+        st.session_state.board = [""] * 9
+        st.session_state.current_player = "X"
 
-        .news-item a {
-            color: #4CAF50;
-            text-decoration: none;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <h1>Welcome to the Quirky Website</h1>
-        <nav>
-            <a href="#games">Mini Games</a>
-            <a href="#news">News Feed</a>
-            <a href="#forum">Forum</a>
-        </nav>
-    </header>
-    <main>
-        <section id="games">
-            <h2>Mini Games</h2>
-            <div id="game-container">
-                <!-- Games will load here -->
-            </div>
-        </section>
-        <section id="news">
-            <h2>News Feed</h2>
-            <div id="news-container">
-                <!-- News articles will load here -->
-            </div>
-        </section>
-        <section id="forum">
-            <h2>Forum</h2>
-            <p>Forum functionality coming soon!</p>
-        </section>
-    </main>
-    <footer>
-        <p>© 2024 Quirky Website</p>
-    </footer>
-    <script>
-        // Placeholder for Mini-Games
-        document.getElementById("game-container").innerHTML = `
-            <p>Mini-games coming soon! (Maybe Tic-Tac-Toe or Snake?)</p>
-        `;
+# Tab 2: News Feed
+with tab2:
+    st.header("News Feed")
+    st.write("Latest news from around the world:")
 
-        // Placeholder for News Feed
-        fetch('https://newsapi.org/v2/top-headlines?country=us&apiKey=YOUR_API_KEY')
-            .then(response => response.json())
-            .then(data => {
-                const newsContainer = document.getElementById("news-container");
-                newsContainer.innerHTML = data.articles
-                    .slice(0, 5)
-                    .map(article => `
-                        <div class="news-item">
-                            <h3>${article.title}</h3>
-                            <p>${article.description || 'No description available.'}</p>
-                            <a href="${article.url}" target="_blank">Read more</a>
-                        </div>
-                    `)
-                    .join('');
-            })
-            .catch(error => console.error("Error fetching news:", error));
-    </script>
-</body>
-</html>
+    # Fetch news using NewsAPI
+    API_KEY = "YOUR_API_KEY"  # Replace with your NewsAPI key
+    NEWS_API_URL = f"https://newsapi.org/v2/top-headlines?country=us&apiKey={API_KEY}"
+
+    try:
+        response = requests.get(NEWS_API_URL)
+        if response.status_code == 200:
+            articles = response.json().get("articles", [])
+            for article in articles[:5]:  # Display top 5 articles
+                st.subheader(article["title"])
+                st.write(article["description"] or "No description available.")
+                st.markdown(f"[Read more...]({article['url']})")
+        else:
+            st.error("Failed to fetch news. Check your API key.")
+    except Exception as e:
+        st.error(f"Error fetching news: {e}")
+
+# Tab 3: Forum
+with tab3:
+    st.header("Forum")
+    st.write("Chat with other visitors:")
+
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+    # Display chat messages
+    for message in st.session_state.messages:
+        st.chat_message(message["role"]).write(message["content"])
+
+    # User input for new message
+    if user_input := st.chat_input("Type your message here..."):
+        st.session_state.messages.append({"role": "user", "content": user_input})
+        st.chat_message("user").write(user_input)
+
+        # Example bot response
+        bot_response = "Thanks for your message!"
+        st.session_state.messages.append({"role": "assistant", "content": bot_response})
+        st.chat_message("assistant").write(bot_response)
