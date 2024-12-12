@@ -1,90 +1,111 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
+# Initialize session state
+if 'pet_state' not in st.session_state:
+    st.session_state.pet_state = {
+        'happiness': 80,
+        'energy': 70,
+        'food': 90,
+        'position_x': 0,
+        'position_z': 0
+    }
+
 # Page config
 st.set_page_config(page_title="3D Pet World", layout="wide")
 
-# Custom HTML with Three.js
+# Create the Three.js scene with communication back to Python
 threejs_code = """
 <div id="canvas-container" style="height: 500px; width: 100%;"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-    // Set up scene
+    // Scene setup
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x87CEEB);  // Sky blue
+    scene.background = new THREE.Color(0x87CEEB);
 
-    // Set up camera
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.z = 5;
-    camera.position.y = 2;
+    camera.position.set(0, 5, 10);
 
-    // Set up renderer
     const renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-    // Add lights
+    // Lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-    directionalLight.position.set(0, 1, 1);
+    directionalLight.position.set(0, 10, 5);
     scene.add(directionalLight);
 
-    // Create ground
-    const groundGeometry = new THREE.PlaneGeometry(10, 10);
-    const groundMaterial = new THREE.MeshStandardMaterial({color: 0x90EE90});  // Light green
+    // Ground
+    const groundGeometry = new THREE.PlaneGeometry(20, 20);
+    const groundMaterial = new THREE.MeshStandardMaterial({color: 0x90EE90});
     const ground = new THREE.Mesh(groundGeometry, groundMaterial);
     ground.rotation.x = -Math.PI / 2;
-    ground.position.y = -1;
     scene.add(ground);
 
-    // Create pet (simple sphere for now)
-    const petGeometry = new THREE.SphereGeometry(0.5, 32, 32);
-    const petMaterial = new THREE.MeshPhongMaterial({color: 0x4169E1});  // Royal blue
-    const pet = new THREE.Mesh(petGeometry, petMaterial);
-    scene.add(pet);
+    // Pet
+    const pet = new THREE.Group();
+    
+    // Body
+    const bodyGeometry = new THREE.SphereGeometry(1, 32, 32);
+    const bodyMaterial = new THREE.MeshPhongMaterial({color: 0x4169E1});
+    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+    pet.add(body);
 
-    // Add eyes
-    const eyeGeometry = new THREE.SphereGeometry(0.1, 16, 16);
+    // Eyes
+    const eyeGeometry = new THREE.SphereGeometry(0.2, 16, 16);
     const eyeMaterial = new THREE.MeshPhongMaterial({color: 0xFFFFFF});
     const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
     const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-    leftEye.position.set(-0.2, 0.1, 0.4);
-    rightEye.position.set(0.2, 0.1, 0.4);
+    leftEye.position.set(-0.4, 0.2, 0.8);
+    rightEye.position.set(0.4, 0.2, 0.8);
     pet.add(leftEye);
     pet.add(rightEye);
 
-    // Add trees
-    function createTree(x, z) {
-        const trunkGeometry = new THREE.CylinderGeometry(0.1, 0.1, 1);
-        const trunkMaterial = new THREE.MeshPhongMaterial({color: 0x8B4513});
-        const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
-        trunk.position.set(x, 0, z);
+    // Pupils
+    const pupilGeometry = new THREE.SphereGeometry(0.1, 16, 16);
+    const pupilMaterial = new THREE.MeshPhongMaterial({color: 0x000000});
+    const leftPupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
+    const rightPupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
+    leftPupil.position.set(-0.4, 0.2, 0.9);
+    rightPupil.position.set(0.4, 0.2, 0.9);
+    pet.add(leftPupil);
+    pet.add(rightPupil);
 
-        const leavesGeometry = new THREE.ConeGeometry(0.5, 1, 8);
-        const leavesMaterial = new THREE.MeshPhongMaterial({color: 0x228B22});
-        const leaves = new THREE.Mesh(leavesGeometry, leavesMaterial);
-        leaves.position.set(x, 1, z);
+    scene.add(pet);
 
-        scene.add(trunk);
-        scene.add(leaves);
+    // Animation variables
+    let isJumping = false;
+    let jumpHeight = 0;
+    let bounceSpeed = 0.1;
+
+    function jump() {
+        isJumping = true;
+        setTimeout(() => { isJumping = false; }, 500);
     }
 
-    createTree(-2, -2);
-    createTree(2, -2);
-    createTree(0, -3);
+    function movePet(x, z) {
+        pet.position.x = x;
+        pet.position.z = z;
+    }
 
-    // Animation
-    let time = 0;
     function animate() {
         requestAnimationFrame(animate);
+
+        // Bouncing animation
+        if (isJumping) {
+            jumpHeight += bounceSpeed;
+            if (jumpHeight > 2) bounceSpeed = -0.1;
+            if (jumpHeight < 0) {
+                jumpHeight = 0;
+                bounceSpeed = 0.1;
+                isJumping = false;
+            }
+        }
         
-        // Make pet bob up and down
-        time += 0.05;
-        pet.position.y = Math.sin(time) * 0.1;
-        
-        // Rotate pet slightly
-        pet.rotation.y = Math.sin(time * 0.5) * 0.2;
+        pet.position.y = jumpHeight + Math.sin(Date.now() * 0.003) * 0.1;
+        pet.rotation.y = Math.sin(Date.now() * 0.001) * 0.2;
 
         renderer.render(scene, camera);
     }
@@ -99,10 +120,9 @@ threejs_code = """
 
     animate();
 
-    // Add orbit controls
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
+    // Make functions available to Python
+    window.jump = jump;
+    window.movePet = movePet;
 </script>
 """
 
@@ -111,33 +131,60 @@ col1, col2 = st.columns([3,1])
 
 with col1:
     st.title("🌈 3D Pet World")
-    # Render 3D scene
     components.html(threejs_code, height=600)
+
+    # Movement controls
+    st.markdown("### Movement Controls")
+    cols = st.columns(4)
+    with cols[0]:
+        if st.button("⬅️ Left"):
+            st.session_state.pet_state['position_x'] -= 1
+            st.experimental_rerun()
+    with cols[1]:
+        if st.button("⬆️ Forward"):
+            st.session_state.pet_state['position_z'] -= 1
+            st.experimental_rerun()
+    with cols[2]:
+        if st.button("⬇️ Back"):
+            st.session_state.pet_state['position_z'] += 1
+            st.experimental_rerun()
+    with cols[3]:
+        if st.button("➡️ Right"):
+            st.session_state.pet_state['position_x'] += 1
+            st.experimental_rerun()
 
 with col2:
     # Stats
     st.markdown("### Pet Stats")
-    st.progress(0.8, "Happiness")
-    st.progress(0.7, "Energy")
-    st.progress(0.9, "Food")
+    happiness = st.progress(st.session_state.pet_state['happiness']/100, "Happiness")
+    energy = st.progress(st.session_state.pet_state['energy']/100, "Energy")
+    food = st.progress(st.session_state.pet_state['food']/100, "Food")
 
     # Actions
     st.markdown("### Actions")
     if st.button("🎾 Play"):
+        st.session_state.pet_state['happiness'] = min(100, st.session_state.pet_state['happiness'] + 10)
+        st.session_state.pet_state['energy'] = max(0, st.session_state.pet_state['energy'] - 5)
         st.write("Playing with pet!")
+        st.experimental_rerun()
+        
     if st.button("🍖 Feed"):
+        st.session_state.pet_state['food'] = min(100, st.session_state.pet_state['food'] + 20)
+        st.session_state.pet_state['happiness'] = min(100, st.session_state.pet_state['happiness'] + 5)
         st.write("Feeding pet!")
-    if st.button("🌳 Add Tree"):
-        st.write("Adding tree!")
+        st.experimental_rerun()
 
-# Controls
-st.markdown("### Movement Controls")
-cols = st.columns(4)
-with cols[0]:
-    st.button("⬅️ Left")
-with cols[1]:
-    st.button("⬆️ Forward")
-with cols[2]:
-    st.button("⬇️ Back")
-with cols[3]:
-    st.button("➡️ Right")
+    if st.button("🦴 Treat"):
+        st.session_state.pet_state['happiness'] = min(100, st.session_state.pet_state['happiness'] + 15)
+        st.write("Gave pet a treat!")
+        st.experimental_rerun()
+
+# Inject JavaScript to update pet position
+st.markdown(f"""
+<script>
+    if (window.movePet) {{
+        window.movePet({st.session_state.pet_state['position_x']}, 
+                      {st.session_state.pet_state['position_z']});
+    }}
+</script>
+""", unsafe_allow_html=True)
