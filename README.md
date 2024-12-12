@@ -26,6 +26,7 @@ Technical Details
  * Programming Language: Python
  * AI Framework: PyTorch,TensorFlow,Keras,NumPy,SciPy,Pandas,Scikit-learn,Matplot,Seaborn,OpenCV,NLTK,Requests,Visual Studio Code
  * Music Engine: N/A
+
 Contributing:
 We welcome contributions to Synthciety. Please follow our contribution guidelines and code of conduct.
 License:
