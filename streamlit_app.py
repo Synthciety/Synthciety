@@ -21,7 +21,8 @@ html_content = """
             display: flex;
             justify-content: center;
             align-items: center;
-            background: #000;
+            background: url('low-poly-bubble-render.jpg') no-repeat center center;
+            background-size: cover;
         }
         #start-button {
             position: absolute;
@@ -69,19 +70,19 @@ html_content = """
         });
 
         document.getElementById('object1').addEventListener('click', () => {
-            alert('Why don’t scientists trust atoms? Because they make up everything!');
+            window.location.href = 'page1.html';
         });
 
         document.getElementById('object2').addEventListener('click', () => {
-            alert('Why did the scarecrow become a successful neurosurgeon? Because he was outstanding in his field!');
+            window.location.href = 'page2.html';
         });
 
         document.getElementById('object3').addEventListener('click', () => {
-            alert('Did you hear about the mathematician who’s afraid of negative numbers? He will stop at nothing to avoid them!');
+            window.location.href = 'page3.html';
         });
 
         document.getElementById('object4').addEventListener('click', () => {
-            alert('Why don’t programmers like nature? It has too many bugs!');
+            window.location.href = 'page4.html';
         });
     </script>
 </body>
