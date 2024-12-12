@@ -70,7 +70,3 @@ prediction_proba = model.predict_proba(input_data)
 
 st.write(f"Predicted Species: {iris.target_names[prediction][0]}")
 st.write(f"Prediction Probability: {prediction_proba}")
-
-# Run the app
-if __name__ == '__main__':
-    st.run()
