@@ -24,11 +24,15 @@ html_content = """
             background: url('low-poly-bubble-render.jpg') no-repeat center center;
             background-size: cover;
         }
-        #keyhole {
-            width: 200px;
-            height: 400px;
-            background: url('keyhole.png') no-repeat center center;
-            background-size: contain;
+        #start-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 10px 20px;
+            font-size: 20px;
+            background-color: #fff;
+            border: none;
             cursor: pointer;
             animation: glow 1.5s infinite alternate;
         }
@@ -40,13 +44,45 @@ html_content = """
                 box-shadow: 0 0 20px #fff;
             }
         }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: none;
+        }
+        .clickable-object {
+            position: absolute;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
-    <div id="keyhole"></div>
+    <button id="start-button">Start</button>
+    <iframe id="skybox-iframe" src="https://skybox.blockadelabs.com/e/a27b3cf0457413435fc4b313d73d320a" allow="fullscreen"></iframe>
+    <div class="clickable-object" id="object1" style="top: 30%; left: 40%; width: 50px; height: 50px;"></div>
+    <div class="clickable-object" id="object2" style="top: 60%; left: 70%; width: 50px; height: 50px;"></div>
+    <div class="clickable-object" id="object3" style="top: 20%; left: 20%; width: 50px; height: 50px;"></div>
+    <div class="clickable-object" id="object4" style="top: 50%; left: 80%; width: 50px; height: 50px;"></div>
     <script>
-        document.getElementById('keyhole').addEventListener('click', () => {
-            window.location.href = 'interactive_scene.html';
+        document.getElementById('start-button').addEventListener('click', () => {
+            document.getElementById('start-button').style.display = 'none';
+            document.getElementById('skybox-iframe').style.display = 'block';
+        });
+
+        document.getElementById('object1').addEventListener('click', () => {
+            alert('You clicked on object 1!');
+        });
+
+        document.getElementById('object2').addEventListener('click', () => {
+            alert('You clicked on object 2!');
+        });
+
+        document.getElementById('object3').addEventListener('click', () => {
+            alert('You clicked on object 3!');
+        });
+
+        document.getElementById('object4').addEventListener('click', () => {
+            alert('You clicked on object 4!');
         });
     </script>
 </body>
