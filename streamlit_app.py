@@ -23,15 +23,57 @@ html_content = """
             align-items: center;
             background: #000;
         }
+        #start-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 10px 20px;
+            font-size: 20px;
+            background-color: #fff;
+            border: none;
+            cursor: pointer;
+            animation: glow 1.5s infinite alternate;
+        }
+        @keyframes glow {
+            from {
+                box-shadow: 0 0 10px #fff;
+            }
+            to {
+                box-shadow: 0 0 20px #fff;
+            }
+        }
         iframe {
             width: 100%;
             height: 100%;
             border: none;
+            display: none;
+        }
+        .clickable-object {
+            position: absolute;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <iframe src="https://skybox.blockadelabs.com/e/a27b3cf0457413435fc4b313d73d320a" allow="fullscreen"></iframe>
+    <button id="start-button">Start</button>
+    <iframe id="skybox-iframe" src="https://skybox.blockadelabs.com/e/a27b3cf0457413435fc4b313d73d320a" allow="fullscreen"></iframe>
+    <div class="clickable-object" id="object1" style="top: 30%; left: 40%; width: 50px; height: 50px;"></div>
+    <div class="clickable-object" id="object2" style="top: 60%; left: 70%; width: 50px; height: 50px;"></div>
+    <script>
+        document.getElementById('start-button').addEventListener('click', () => {
+            document.getElementById('start-button').style.display = 'none';
+            document.getElementById('skybox-iframe').style.display = 'block';
+        });
+
+        document.getElementById('object1').addEventListener('click', () => {
+            alert('Why don’t scientists trust atoms? Because they make up everything!');
+        });
+
+        document.getElementById('object2').addEventListener('click', () => {
+            alert('Why did the scarecrow become a successful neurosurgeon? Because he was outstanding in his field!');
+        });
+    </script>
 </body>
 </html>
 """
