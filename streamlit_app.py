@@ -1,82 +1,101 @@
 import streamlit as st
-import requests
+import streamlit.components.v1 as components
 
-# Page Configuration
-st.set_page_config(page_title="Quirky Website", layout="centered")
+st.set_page_config(page_title="Interactive Landing Page", layout="wide")
 
-# Page Header
-st.title("Welcome to the Quirky Website")
-st.write("Explore **Mini-Games**, the latest **News**, and our interactive **Forum**!")
+# HTML content for the landing page
+html_content = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Landing Page</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #000;
+        }
+        #keyhole {
+            width: 200px;
+            height: 400px;
+            background: url('keyhole.png') no-repeat center center;
+            background-size: contain;
+            cursor: pointer;
+            animation: glow 1.5s infinite alternate;
+        }
+        @keyframes glow {
+            from {
+                box-shadow: 0 0 10px #fff;
+            }
+            to {
+                box-shadow: 0 0 20px #fff;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="keyhole"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Create the scene
+        const scene = new THREE.Scene();
 
-# Navigation Tabs
-tab1, tab2, tab3 = st.tabs(["Mini Games", "News Feed", "Forum"])
+        // Create a camera
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 5;
 
-# Tab 1: Mini Games
-with tab1:
-    st.header("Mini Games")
-    st.write("Play fun games below:")
+        // Create a renderer
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
 
-    # Tic-Tac-Toe Example (Simple Implementation)
-    st.write("### Tic-Tac-Toe")
-    if "board" not in st.session_state:
-        st.session_state.board = [""] * 9
-        st.session_state.current_player = "X"
+        // Create a cube
+        const geometry = new THREE.BoxGeometry();
+        const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
+        const cube = new THREE.Mesh(geometry, material);
+        scene.add(cube);
 
-    # Display Tic-Tac-Toe Board
-    cols = st.columns(3)
-    for i in range(3):
-        for j in range(3):
-            idx = 3 * i + j
-            if cols[j].button(st.session_state.board[idx] or " ", key=f"cell-{idx}"):
-                if not st.session_state.board[idx]:
-                    st.session_state.board[idx] = st.session_state.current_player
-                    st.session_state.current_player = "O" if st.session_state.current_player == "X" else "X"
+        // Add lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
 
-    # Reset Button
-    if st.button("Reset Game"):
-        st.session_state.board = [""] * 9
-        st.session_state.current_player = "X"
+        const pointLight = new THREE.PointLight(0xffffff, 1);
+        pointLight.position.set(5, 5, 5);
+        scene.add(pointLight);
 
-# Tab 2: News Feed
-with tab2:
-    st.header("News Feed")
-    st.write("Latest news from around the world:")
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            cube.rotation.x += 0.01;
+            cube.rotation.y += 0.01;
+            renderer.render(scene, camera);
+        }
+        animate();
 
-    # Fetch news using NewsAPI
-    API_KEY = "YOUR_API_KEY"  # Replace with your NewsAPI key
-    NEWS_API_URL = f"https://newsapi.org/v2/top-headlines?country=us&apiKey={API_KEY}"
+        // Keyhole click event
+        document.getElementById('keyhole').addEventListener('click', () => {
+            document.getElementById('keyhole').style.display = 'none';
+            renderer.domElement.style.display = 'block';
+        });
 
-    try:
-        response = requests.get(NEWS_API_URL)
-        if response.status_code == 200:
-            articles = response.json().get("articles", [])
-            for article in articles[:5]:  # Display top 5 articles
-                st.subheader(article["title"])
-                st.write(article["description"] or "No description available.")
-                st.markdown(f"[Read more...]({article['url']})")
-        else:
-            st.error("Failed to fetch news. Check your API key.")
-    except Exception as e:
-        st.error(f"Error fetching news: {e}")
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
+"""
 
-# Tab 3: Forum
-with tab3:
-    st.header("Forum")
-    st.write("Chat with other visitors:")
-
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-
-    # Display chat messages
-    for message in st.session_state.messages:
-        st.chat_message(message["role"]).write(message["content"])
-
-    # User input for new message
-    if user_input := st.chat_input("Type your message here..."):
-        st.session_state.messages.append({"role": "user", "content": user_input})
-        st.chat_message("user").write(user_input)
-
-        # Example bot response
-        bot_response = "Thanks for your message!"
-        st.session_state.messages.append({"role": "assistant", "content": bot_response})
-        st.chat_message("assistant").write(bot_response)
+# Display the HTML content in Streamlit
+components.html(html_content, height=600)
